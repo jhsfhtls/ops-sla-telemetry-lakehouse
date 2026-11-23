@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "project_name": "ops-sla-telemetry-lakehouse",
-  "active_phase": "Phase 04 - dbt Incremental Merge Marts (MTTR, MTBF, Burn Rate & Capacity)",
+  "active_phase": "Phase 05 - Idempotent Alert Dispatcher & Runbook Drafter",
   "overall_status": "ON_TRACK",
   "last_updated_date": "2026-11-23",
   "phases": [
@@ -64,7 +64,7 @@
     {
       "phase_id": "05",
       "name": "Idempotent Alert Dispatcher & Runbook Drafter",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "gate": "Deduplication, alert cap, and refusal of external writes without explicit confirmation verified by tests.",
       "deliverables": [
         "SEV-1..SEV-4 classifier + POP_T_036/POP_B_115 runbook/post-mortem drafter",
