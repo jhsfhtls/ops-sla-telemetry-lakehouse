@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "project_name": "ops-sla-telemetry-lakehouse",
-  "active_phase": "Phase 05 - Idempotent Alert Dispatcher & Runbook Drafter",
+  "active_phase": "Phase 06 - Four-Interface Parity (CLI, SDK, FastAPI, MCP)",
   "overall_status": "ON_TRACK",
   "last_updated_date": "2026-11-23",
   "phases": [
@@ -74,7 +74,7 @@
     {
       "phase_id": "06",
       "name": "Four-Interface Parity (CLI, SDK, FastAPI, MCP)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "gate": "Cross-interface parity suite green and clone-to-sla-status benchmark <= 60s.",
       "deliverables": [
         "OpsSlaTelemetry SDK & FastAPI /api/v1/* endpoints",

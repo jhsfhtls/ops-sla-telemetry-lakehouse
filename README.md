@@ -51,6 +51,33 @@ ost --version
 ost status --json
 ```
 
+### Quick Usage (`CLI`, `Python SDK`, `FastAPI`, `MCP`)
+
+```bash
+# 1. Generate 50,000 synthetic orders -> Bronze SQLite WAL -> Silver ZSTD Parquet -> dbt Gold marts
+ost ingest --seed 42 --orders 50000
+ost sla-status --json
+ost at-risk --limit 10
+ost team-capacity --limit 10
+ost core-health
+ost sync-ticktick   # Defaults strictly to --dry-run
+
+# 2. FastAPI REST API (OpenAPI docs at /docs)
+uvicorn ops_sla_telemetry.api.app:create_app --factory --reload
+
+# 3. Stdio MCP Server (JSON-RPC 2.0 with <untrusted_data> wrapping)
+ost-mcp
+```
+
+```python
+from ops_sla_telemetry import OpsSlaTelemetry
+
+sdk = OpsSlaTelemetry()
+sdk.ingest(seed=42, order_count=50_000, run_dbt=True)
+print(sdk.sla_status()["global_summary"])
+print(sdk.sync_ticktick())  # dry-run by default
+```
+
 ---
 
 ## 3. Repository Map
@@ -61,6 +88,7 @@ ost status --json
 | [`catalog/events_and_slas.yaml`](catalog/events_and_slas.yaml) & [`CATALOG.md`](CATALOG.md) | Single source of truth for event schemas, SLA policies, and burn-rate thresholds |
 | [`state/project_progress.json`](state/project_progress.json) & [`JORNADA_IMPLEMENTACAO.md`](JORNADA_IMPLEMENTACAO.md) | Phase tracker and acceptance gates (`Phase 00` through `Phase 08`) |
 | [`scripts/`](scripts/) | Deterministic renderers (`render_catalog.py`, `render_progress.py`) and dbt docs linter (`lint_dbt_docs.py`) |
-| [`src/ops_sla_telemetry/`](src/ops_sla_telemetry/) | Core Python package, CLI (`ost`), and MCP (`ost-mcp`) entrypoints |
+| [`src/ops_sla_telemetry/`](src/ops_sla_telemetry/) | Core Python SDK (`OpsSlaTelemetry`), simulator, CDC ingestor, collectors, dispatcher, CLI (`ost`), FastAPI (`/api/v1/*`), and MCP (`ost-mcp`) |
+| [`dbt/`](dbt/) | DuckDB incremental models (`stg_service_events` -> `int_order_lifecycle_spans` -> `fct_service_order_sla`, `fct_team_daily_capacity`, `mart_sla_burn_rate_alerts`) |
 | [`.github/workflows/`](.github/workflows/) | CI quality checks (`ci.yml`) and PR governance linting (`pr-lint.yml`) |
 | [`tests/`](tests/) | Deterministic offline verification suite (`pytest -m "not live"`) |
