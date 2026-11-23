@@ -68,3 +68,18 @@ jobs:
 
       - name: Execute deterministic offline test suite
         run: pytest -m "not live" -v
+
+      - name: Run synthetic dbt build & 100% docs coverage check
+        run: |
+          python - <<'PY'
+          from ops_sla_telemetry.config import LakehouseSettings
+          from ops_sla_telemetry.ingestion import CdcEventIngestor
+          from ops_sla_telemetry.simulator import FieldOrderSimulator
+
+          settings = LakehouseSettings()
+          events = FieldOrderSimulator(seed=42, order_count=1000).generate_events()
+          CdcEventIngestor(settings=settings).ingest_and_sync(events, batch_id="ci_smoke")
+          PY
+          dbt build --project-dir dbt --profiles-dir dbt
+          dbt docs generate --project-dir dbt --profiles-dir dbt
+          python scripts/lint_dbt_docs.py

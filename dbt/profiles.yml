@@ -1,0 +1,7 @@
+ops_sla_telemetry:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('OST_DUCKDB_PATH', 'data/gold/ops_sla_telemetry.duckdb') }}"
+      threads: 4

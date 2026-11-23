@@ -1,0 +1,195 @@
+version: 2
+
+models:
+  - name: fct_service_order_sla
+    description: Incremental order-level SLA evaluation fact table applying dual calendars (24x7 vs Manaus business hours) and ON_HOLD exclusion.
+    columns:
+      - name: order_id
+        description: Canonical STRING work order identifier.
+        tests:
+          - unique
+          - not_null
+      - name: team_id
+        description: Canonical STRING field crew identifier.
+        tests:
+          - not_null
+      - name: region_id
+        description: Operational region identifier.
+        tests:
+          - not_null
+      - name: priority
+        description: Order priority tier (P1, P2, P3).
+        tests:
+          - not_null
+      - name: calendar_mode
+        description: SLA clock calendar mode (24x7 or BUSINESS_HOURS).
+        tests:
+          - not_null
+      - name: sla_target_minutes
+        description: SLA target budget in active minutes.
+        tests:
+          - not_null
+      - name: created_ts
+        description: Order creation UTC timestamp.
+        tests:
+          - not_null
+      - name: terminal_ts
+        description: Terminal COMPLETED or SLA_BREACHED UTC timestamp (NULL if open).
+      - name: terminal_event_type
+        description: Terminal outcome event type (COMPLETED, SLA_BREACHED, or NULL).
+      - name: current_state
+        description: Latest lifecycle state recorded for the order.
+        tests:
+          - not_null
+      - name: order_date
+        description: Order creation local date in America/Manaus timezone.
+        tests:
+          - not_null
+      - name: gross_wall_minutes
+        description: Gross elapsed wall-clock minutes before calendar or hold deductions.
+        tests:
+          - not_null
+      - name: on_hold_minutes
+        description: Calendar-aligned ON_HOLD pause minutes deducted from active SLA time.
+        tests:
+          - not_null
+      - name: active_elapsed_minutes
+        description: Net active SLA elapsed minutes under the applicable calendar excluding ON_HOLD pauses.
+        tests:
+          - not_null
+      - name: is_closed
+        description: Boolean indicator confirming whether a terminal lifecycle event was observed.
+        tests:
+          - not_null
+      - name: sla_status
+        description: Classified SLA status (SLA_MET, SLA_BREACHED, AT_RISK, or ON_TRACK).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SLA_MET', 'SLA_BREACHED', 'AT_RISK', 'ON_TRACK']
+      - name: remaining_sla_hours
+        description: Remaining SLA budget in hours for open orders (0.0 when closed).
+        tests:
+          - not_null
+      - name: resolution_hours
+        description: Active resolution time in hours for closed orders (NULL while open).
+      - name: last_ingest_seq
+        description: Latest Bronze watermark sequence number processed for this order.
+        tests:
+          - not_null
+
+  - name: fct_team_daily_capacity
+    description: Incremental daily team capacity and reliability mart reporting SLA compliance, MTTR, MTBF, and at-risk backlog.
+    columns:
+      - name: team_day_key
+        description: Composite STRING key (order_date|region_id|team_id) for incremental merge.
+        tests:
+          - unique
+          - not_null
+      - name: order_date
+        description: Operational cohort date in America/Manaus timezone.
+        tests:
+          - not_null
+      - name: region_id
+        description: Operational region identifier.
+        tests:
+          - not_null
+      - name: team_id
+        description: Field crew team identifier.
+        tests:
+          - not_null
+      - name: orders_created
+        description: Total work orders created on this date for the team.
+        tests:
+          - not_null
+      - name: orders_completed
+        description: Work orders resolved within SLA (SLA_MET).
+        tests:
+          - not_null
+      - name: orders_breached
+        description: Work orders exceeding SLA (SLA_BREACHED).
+        tests:
+          - not_null
+      - name: orders_at_risk
+        description: Open work orders currently below 24h remaining SLA budget.
+        tests:
+          - not_null
+      - name: sla_compliance_pct
+        description: Percentage of closed orders meeting SLA target (0 to 100).
+        tests:
+          - not_null
+      - name: mttr_hours
+        description: Mean active resolution time in hours across closed orders.
+      - name: mtbf_hours
+        description: Mean time in hours between SLA breaches for the 24-hour team cohort (NULL when zero breaches).
+      - name: avg_hold_minutes
+        description: Average ON_HOLD pause duration in minutes per order.
+        tests:
+          - not_null
+      - name: last_ingest_seq
+        description: Highest Bronze watermark sequence number contributing to this daily team bucket.
+        tests:
+          - not_null
+
+  - name: mart_sla_burn_rate_alerts
+    description: SRE multi-window error-budget burn-rate alert mart (99.0% SLO) with SEV-1..SEV-4 classification and MTTR/MTBF KPIs.
+    columns:
+      - name: cohort_key
+        description: Unique cohort identifier (region_id|priority or ALL|ALL).
+        tests:
+          - unique
+          - not_null
+      - name: region_id
+        description: Operational region identifier or ALL for global rollup.
+        tests:
+          - not_null
+      - name: priority
+        description: Order priority tier (P1, P2, P3) or ALL for global rollup.
+        tests:
+          - not_null
+      - name: evaluated_30d
+        description: Total closed work orders evaluated inside the rolling 30-day SLO window.
+        tests:
+          - not_null
+      - name: breached_30d
+        description: Total SLA_BREACHED orders observed inside the rolling 30-day SLO window.
+        tests:
+          - not_null
+      - name: sla_compliance_pct_30d
+        description: Rolling 30-day SLA attainment percentage against the 99.0% SLO target.
+        tests:
+          - not_null
+      - name: error_budget_remaining_pct
+        description: Remaining percentage of the 1.0% error budget across the 30-day window.
+        tests:
+          - not_null
+      - name: burn_rate_1h
+        description: Short-window 1-hour error-budget burn rate multiplier relative to 1% budget.
+        tests:
+          - not_null
+      - name: burn_rate_6h
+        description: Confirmation/medium-window 6-hour error-budget burn rate multiplier.
+        tests:
+          - not_null
+      - name: burn_rate_24h
+        description: Daily 24-hour error-budget burn rate multiplier.
+        tests:
+          - not_null
+      - name: burn_rate_7d
+        description: Weekly 7-day sustained error-budget burn rate multiplier.
+        tests:
+          - not_null
+      - name: mttr_hours_30d
+        description: Mean active resolution time in hours over the rolling 30-day window.
+      - name: mtbf_hours_30d
+        description: Mean time in hours between SLA breaches over the 720-hour rolling window (NULL when zero breaches).
+      - name: at_risk_queue_count
+        description: Count of open orders currently in AT_RISK status (< 24h remaining SLA).
+        tests:
+          - not_null
+      - name: alert_severity
+        description: Classified SRE alert severity (SEV-1, SEV-2, SEV-3, SEV-4, or OK).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SEV-1', 'SEV-2', 'SEV-3', 'SEV-4', 'OK']
