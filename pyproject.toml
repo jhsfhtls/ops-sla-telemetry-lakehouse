@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ops-sla-telemetry-lakehouse"
+version = "0.1.0"
+description = "Event-driven field-service and operational SLA telemetry lakehouse with incremental CDC, 99% SLA error-budget burn rate, MTTR/MTBF analytics, and automated alert dispatch."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+dependencies = [
+    "duckdb==2.0.0",
+    "fastapi==0.162.2",
+    "httpx==0.28.1",
+    "pyarrow==26.0.1",
+    "pydantic==2.14.3",
+    "python-dotenv==1.2.4",
+    "PyYAML==6.0.3",
+    "uvicorn==0.54.0",
+]
+
+[project.scripts]
+ost = "ops_sla_telemetry.cli.main:main"
+ost-mcp = "ops_sla_telemetry.mcp.server:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "live: executes live smoke checks against external integrations",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]

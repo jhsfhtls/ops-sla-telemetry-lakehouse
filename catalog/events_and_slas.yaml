@@ -1,0 +1,261 @@
+schema_version: "1.0.0"
+
+slo_defaults:
+  global_slo: 0.99
+  error_budget: 0.01
+  timezone: "America/Manaus"
+  business_hours: "Mon-Fri 08:00-18:00"
+  burn_rate_baseline_window_hours: 720
+
+event_types:
+  - event_type: CREATED
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: false
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Initial creation of a field-service work order entering the SLA clock.
+
+  - event_type: ASSIGNED
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: false
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Dispatch assignment of an open order to a field crew or queue.
+
+  - event_type: IN_TRANSIT
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: false
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Field crew dispatched and en route to service site.
+
+  - event_type: IN_EXECUTION
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: false
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Active on-site field intervention underway.
+
+  - event_type: ON_HOLD
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: false
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Validated operational freeze excluded from active SLA elapsed calculation.
+
+  - event_type: COMPLETED
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: true
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Successful service order resolution stopping the SLA clock.
+
+  - event_type: SLA_BREACHED
+    domain: FIELD_SERVICE
+    privacy_tier: SYNTHETIC_PUBLIC
+    terminal: true
+    required_fields:
+      - event_id
+      - order_id
+      - event_type
+      - event_ts
+      - updated_at
+      - team_id
+      - region_id
+      - priority
+    description: Explicit SLA target violation recorded for error-budget and MTBF tracking.
+
+  - event_type: CORE_AGENT_SPAN
+    domain: CORE_OBSERVABILITY
+    privacy_tier: LOCAL_ALLOWLIST_ONLY
+    terminal: true
+    required_fields:
+      - timestamp_utc
+      - trace_id
+      - span_id
+      - skill
+      - model
+      - provider
+      - tokens_total
+      - cost_usd
+      - duration_ms
+      - status
+      - repo
+    description: Read-only execution telemetry span from core/.logs/agent_telemetry.jsonl excluding free-text notes.
+
+  - event_type: CORE_POP_FRESHNESS
+    domain: CORE_OBSERVABILITY
+    privacy_tier: LOCAL_ALLOWLIST_ONLY
+    terminal: false
+    required_fields:
+      - pop_id
+      - relative_path
+      - last_reviewed
+      - age_days
+      - status
+    description: POP freshness metadata parsed from review headers without reading prose content.
+
+  - event_type: CORE_CONSULTING_PHASE
+    domain: CORE_OBSERVABILITY
+    privacy_tier: LOCAL_ALLOWLIST_ONLY
+    terminal: false
+    required_fields:
+      - id
+      - fase_atual
+      - status
+      - data_abertura
+      - data_entrada
+    description: Anonymized consulting phase SLA metadata (S01..S09) excluding client names, sponsors, and paths.
+
+  - event_type: CORE_CAREER_FOLLOWUP
+    domain: CORE_OBSERVABILITY
+    privacy_tier: LOCAL_ALLOWLIST_ONLY
+    terminal: false
+    required_fields:
+      - id
+      - data_aplicacao
+      - status
+    description: Anonymized career application follow-up SLA metadata (D+3/D+7) excluding company and role names.
+
+  - event_type: CORE_SRS_CARD_DUE
+    domain: CORE_OBSERVABILITY
+    privacy_tier: LOCAL_ALLOWLIST_ONLY
+    terminal: false
+    required_fields:
+      - card_id
+      - last_reviewed
+      - next_review
+      - interval
+      - review_count
+      - last_result
+    description: Anonymized spaced-repetition review status from studies without study note content.
+
+sla_policies:
+  - policy_id: P1_EMERGENCY
+    domain: FIELD_SERVICE
+    priority: P1
+    calendar: "24x7"
+    target_hours: 4
+    at_risk_threshold_hours: 1
+    description: Critical 24x7 emergency dispatch queue with 4-hour resolution SLA.
+
+  - policy_id: P2_HIGH
+    domain: FIELD_SERVICE
+    priority: P2
+    calendar: BUSINESS_HOURS
+    target_hours: 24
+    at_risk_threshold_hours: 6
+    description: High-priority field work orders measured in Mon-Fri 08:00-18:00 America/Manaus business hours.
+
+  - policy_id: P3_STANDARD
+    domain: FIELD_SERVICE
+    priority: P3
+    calendar: BUSINESS_HOURS
+    target_hours: 72
+    at_risk_threshold_hours: 24
+    description: Standard scheduled field orders measured in Mon-Fri 08:00-18:00 America/Manaus business hours.
+
+  - policy_id: CORE_CONSULTING_PHASE_SLA
+    domain: CORE_OBSERVABILITY
+    priority: P2
+    calendar: BUSINESS_HOURS
+    target_hours: 168
+    at_risk_threshold_hours: 24
+    description: Consulting lifecycle phase progression SLA (S01..S09) without PII.
+
+  - policy_id: CORE_CAREER_FOLLOWUP_SLA
+    domain: CORE_OBSERVABILITY
+    priority: P2
+    calendar: BUSINESS_HOURS
+    target_hours: 72
+    at_risk_threshold_hours: 24
+    description: Career follow-up cadence SLA (D+3 / D+7 checkpoints).
+
+  - policy_id: CORE_POP_FRESHNESS_SLA
+    domain: CORE_OBSERVABILITY
+    priority: P3
+    calendar: "24x7"
+    target_hours: 4320
+    at_risk_threshold_hours: 24
+    description: Standard Operating Procedure review freshness threshold (180 days max age).
+
+  - policy_id: CORE_SRS_REVIEW_SLA
+    domain: CORE_OBSERVABILITY
+    priority: P2
+    calendar: "24x7"
+    target_hours: 24
+    at_risk_threshold_hours: 6
+    description: Daily active recall SLA for overdue spaced-repetition flashcards.
+
+burn_rate_windows:
+  - severity: SEV-1
+    short_window_hours: 1
+    long_window_hours: 6
+    burn_rate_threshold: 14.4
+    action: "Critical page + auto-draft incident post-mortem (POP_T_036/POP_B_115)"
+
+  - severity: SEV-2
+    short_window_hours: 6
+    long_window_hours: 24
+    burn_rate_threshold: 6.0
+    action: "High-priority alert + TickTick task in 00_INBOX_AGENTES (dry-run default)"
+
+  - severity: SEV-3
+    short_window_hours: 24
+    long_window_hours: 168
+    burn_rate_threshold: 2.0
+    action: "Warning ticket + team workload rebalancing recommendation"
+
+  - severity: SEV-4
+    short_window_hours: 24
+    long_window_hours: 24
+    burn_rate_threshold: 1.0
+    action: "Preventive watchlist for open queues with remaining_sla_hours < 24h"
