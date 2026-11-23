@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_service_events
+    description: Deduplicated incremental staging events sourced from Silver ZSTD Parquet partitions.
+    columns:
+      - name: ingest_seq
+        description: Monotonic Bronze SQLite WAL ingestion sequence number used as CDC watermark.
+        tests:
+          - not_null
+      - name: event_id
+        description: Globally unique canonical STRING event identifier used for idempotent merge.
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Canonical STRING field-service work order identifier.
+        tests:
+          - not_null
+      - name: event_type
+        description: Validated lifecycle transition enum (CREATED through COMPLETED or SLA_BREACHED).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CREATED', 'ASSIGNED', 'IN_TRANSIT', 'IN_EXECUTION', 'ON_HOLD', 'COMPLETED', 'SLA_BREACHED']
+      - name: event_ts
+        description: Business occurrence timestamp normalized to UTC TIMESTAMPTZ.
+        tests:
+          - not_null
+      - name: updated_at
+        description: Producer/sync update timestamp in UTC used for deterministic tie-breaking.
+        tests:
+          - not_null
+      - name: team_id
+        description: Canonical STRING identifier of the assigned field crew.
+        tests:
+          - not_null
+      - name: region_id
+        description: Canonical STRING identifier of the operational region.
+        tests:
+          - not_null
+      - name: priority
+        description: Order priority tier controlling SLA calendar and target budget (P1, P2, P3).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['P1', 'P2', 'P3']
+      - name: hold_reason
+        description: Normalized hold cause code (NULL when sentinels or non-hold events).
+      - name: resolution_code
+        description: Normalized terminal resolution code (NULL for non-terminal events).
+      - name: source_name
+        description: Upstream producer identifier recorded in the Bronze outbox manifest.
+        tests:
+          - not_null
+      - name: batch_id
+        description: Ingestion batch identifier linking to the Bronze SHA-256 outbox manifest.
+        tests:
+          - not_null
+      - name: ingested_at
+        description: UTC ingestion timestamp recorded when Bronze SQLite WAL persisted the event.
+        tests:
+          - not_null

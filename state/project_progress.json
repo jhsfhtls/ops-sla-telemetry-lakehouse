@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "project_name": "ops-sla-telemetry-lakehouse",
-  "active_phase": "Phase 03 - Read-Only Multi-Repo C.O.R.E. Collectors with Strict Allowlist",
+  "active_phase": "Phase 04 - dbt Incremental Merge Marts (MTTR, MTBF, Burn Rate & Capacity)",
   "overall_status": "ON_TRACK",
   "last_updated_date": "2026-11-23",
   "phases": [
@@ -54,7 +54,7 @@
     {
       "phase_id": "04",
       "name": "dbt Incremental Merge Marts (MTTR, MTBF, Burn Rate & Capacity)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "gate": "dbt build green and lint_dbt_docs.py at 100% column/model documentation coverage.",
       "deliverables": [
         "stg_service_events -> int_order_lifecycle_spans",

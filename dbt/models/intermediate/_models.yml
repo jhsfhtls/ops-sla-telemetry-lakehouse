@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: int_order_lifecycle_spans
+    description: Incremental order-grain lifecycle spans reconstructed from staged events, re-aggregating full order histories whenever late events arrive.
+    columns:
+      - name: order_id
+        description: Canonical STRING work order identifier (primary grain of intermediate spans).
+        tests:
+          - unique
+          - not_null
+      - name: team_id
+        description: Latest assigned field crew identifier for the order.
+        tests:
+          - not_null
+      - name: region_id
+        description: Operational region identifier for the order.
+        tests:
+          - not_null
+      - name: priority
+        description: Priority tier (P1, P2, P3) governing SLA calendar and target budget.
+        tests:
+          - not_null
+      - name: calendar_mode
+        description: Applicable SLA calendar mode (24x7 for P1, BUSINESS_HOURS for P2/P3).
+        tests:
+          - not_null
+      - name: sla_target_minutes
+        description: Active SLA target budget in minutes (240, 1440, or 4320).
+        tests:
+          - not_null
+      - name: created_ts
+        description: Order creation UTC timestamp starting the SLA clock.
+        tests:
+          - not_null
+      - name: assigned_ts
+        description: First crew assignment UTC timestamp, if reached.
+      - name: in_transit_ts
+        description: First en-route dispatch UTC timestamp, if reached.
+      - name: in_execution_ts
+        description: First active on-site execution UTC timestamp, if reached.
+      - name: terminal_ts
+        description: Terminal COMPLETED or SLA_BREACHED UTC timestamp (NULL while open).
+      - name: terminal_event_type
+        description: Terminal outcome event type (COMPLETED or SLA_BREACHED, NULL while open).
+      - name: current_state
+        description: Latest observed lifecycle state of the work order.
+        tests:
+          - not_null
+      - name: event_count
+        description: Total deduplicated lifecycle events observed for the order.
+        tests:
+          - not_null
+      - name: hold_count
+        description: Number of completed ON_HOLD intervals recorded for the order.
+        tests:
+          - not_null
+      - name: on_hold_wall_minutes
+        description: Total wall-clock minutes spent in ON_HOLD intervals.
+        tests:
+          - not_null
+      - name: on_hold_minutes
+        description: Calendar-aligned ON_HOLD pause minutes excluded from active SLA elapsed time.
+        tests:
+          - not_null
+      - name: gross_wall_minutes
+        description: Unadjusted wall-clock minutes from creation to terminal or latest event.
+        tests:
+          - not_null
+      - name: last_ingest_seq
+        description: Highest Bronze ingestion watermark sequence contributing to this order span.
+        tests:
+          - not_null
