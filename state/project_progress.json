@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "project_name": "ops-sla-telemetry-lakehouse",
-  "active_phase": "Phase 02 - Deterministic Lifecycle Simulator (50k Orders) & CDC Event Ingestor",
+  "active_phase": "Phase 03 - Read-Only Multi-Repo C.O.R.E. Collectors with Strict Allowlist",
   "overall_status": "ON_TRACK",
   "last_updated_date": "2026-11-23",
   "phases": [
@@ -44,7 +44,7 @@
     {
       "phase_id": "03",
       "name": "Read-Only Multi-Repo C.O.R.E. Collectors with Strict Allowlist",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "gate": "Tests prove zero fields outside the allowlist are read or persisted; outputs stay isolated outside public repo.",
       "deliverables": [
         "Read-only collectors for agent_telemetry, POP freshness, consulting, career, and SRS",
