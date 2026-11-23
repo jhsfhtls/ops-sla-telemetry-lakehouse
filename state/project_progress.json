@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "project_name": "ops-sla-telemetry-lakehouse",
-  "active_phase": "Phase 06 - Four-Interface Parity (CLI, SDK, FastAPI, MCP)",
+  "active_phase": "Phase 07 - Chaos & Property-Based Resilience Test Suite",
   "overall_status": "ON_TRACK",
   "last_updated_date": "2026-11-23",
   "phases": [
@@ -84,7 +84,7 @@
     {
       "phase_id": "07",
       "name": "Chaos & Property-Based Resilience Test Suite",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "gate": "Out-of-order, duplicate, late-arriving, and replay scenarios pass with zero merge corruption or duplicate alerts.",
       "deliverables": [
         "Property and chaos test suite covering CDC, dbt merge, and dispatcher idempotency"
